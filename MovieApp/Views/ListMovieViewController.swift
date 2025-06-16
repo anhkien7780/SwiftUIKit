@@ -69,6 +69,23 @@ extension ListMovieViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         return 200 // hoặc UITableView.automaticDimension nếu bạn set layout tốt
     }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let selectedMovieOptional = movieDetailViewModel.movies[indexPath.row]
+        
+        // Xử lý nếu optional có giá trị
+        guard let selectedMovie = selectedMovieOptional else { return }
+
+        // Tạo ViewModel cho màn hình chi tiết
+        let detailVM = MovieDetailViewModel(selectedMovie: selectedMovie)
+        
+        // Tạo ViewController chi tiết và chuyển màn
+        let detailVC = MovieDetailViewController(movieDetailViewModel: detailVM)
+        navigationController?.pushViewController(detailVC, animated: true)
+
+        // Deselect hàng vừa chọn để không bị highlight
+        tableView.deselectRow(at: indexPath, animated: true)
+    }
 }
 
 

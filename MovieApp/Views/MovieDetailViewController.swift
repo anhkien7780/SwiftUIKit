@@ -9,21 +9,44 @@ import Foundation
 import UIKit
 
 class MovieDetailViewController: UIViewController {
-
-    let topAppBarView = TopAppBarView()
     
+    
+    
+    private let movieDetailViewModel: MovieDetailViewModel
+    
+    init(movieDetailViewModel: MovieDetailViewModel) {
+        self.movieDetailViewModel = movieDetailViewModel
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+  
+    
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
-        let backgroundView = MovieBackgroundView(backdropPath: "/zD5v1E4joAzFvmAEytt7fM3ivyT.jpg", rate: "9.5")
         
-        let posterImageView = UIImageView(image: UIImage(named: "SpiderMan"))
+        let movie = movieDetailViewModel.selectedMovie!
+        
+        self.navigationItem.hidesBackButton = true
+        
+        view.backgroundColor = .black
+        
+        let topAppBarView = TopAppBarView()
+        let backgroundView = MovieBackgroundView(backdropPath: movie.backdropPath ?? "", rate: "\(movie.voteAverage)")
+        
+        
+        let posterImageView = UIImageView()
+        let fullURL = "https://image.tmdb.org/t/p/w500\(movie.posterPath ?? "")"
+        posterImageView.sd_setImage(with: URL(string: fullURL), placeholderImage: UIImage(named: "SpiderMan"))
         posterImageView.contentMode = .scaleAspectFill
         
         let movieTitleLabel: UILabel = {
             let label = UILabel()
-            label.text = "Spiderman No Way Home"
+            label.text = movie.originalTitle
             label.font = UIFont.boldSystemFont(ofSize: 18)
             label.numberOfLines = 0
             label.lineBreakMode = .byWordWrapping
@@ -31,17 +54,19 @@ class MovieDetailViewController: UIViewController {
             return label
         }()
         
+        let releaseDate = movie.releaseDate
+        let releaseYear = releaseDate.split(separator: "-")[0]
         let descriptionsView = RowView(arrangedSubViews: [
-            IconTitleView(imageNamed: "CalendarBlank", labelTitle: "2022"),
+            IconTitleView(imageNamed: "CalendarBlank", labelTitle: String(releaseYear)),
             Divider(axis: .verical),
-            IconTitleView(imageNamed: "Clock", labelTitle: "148 Minutes"),
+            IconTitleView(imageNamed: "Clock", labelTitle: "\(movie.runtime)" ),
             Divider(axis: .verical),
-            IconTitleView(imageNamed: "Ticket", labelTitle: "Action"),
+            IconTitleView(imageNamed: "Ticket", labelTitle: movie.genres[0].name),
         ])
         
         let overviewView: UILabel = {
             let label = UILabel()
-            label.text = "From DC Comics comes the Suicide Squad, an antihero team of incarcerated supervillains who act as deniable assets for the United States government, undertaking high-risk black ops missions in exchange for commuted prison sentences."
+            label.text = movie.overview
             label.numberOfLines = 0
             label.lineBreakMode = .byWordWrapping
             label.font = UIFont.systemFont(ofSize: 12)
@@ -51,6 +76,11 @@ class MovieDetailViewController: UIViewController {
         
         descriptionsView.setSpacing(by: 4)
         
+        
+        topAppBarView.onBackTapped = {
+            [weak self] in
+            self?.navigationController?.popViewController(animated: true)
+        }
         
         
         backgroundView.translatesAutoresizingMaskIntoConstraints = false
@@ -86,7 +116,7 @@ class MovieDetailViewController: UIViewController {
             movieTitleLabel.leadingAnchor.constraint(equalTo: posterImageView.trailingAnchor, constant: 12),
             movieTitleLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -12),
             
-            descriptionsView.topAnchor.constraint(equalTo: posterImageView.bottomAnchor, constant: 16),
+            descriptionsView.topAnchor.constraint(equalTo: posterImageView.bottomAnchor, constant: 30),
             descriptionsView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             
             overviewView.topAnchor.constraint(equalTo: descriptionsView.bottomAnchor, constant: 30),
@@ -96,8 +126,12 @@ class MovieDetailViewController: UIViewController {
             
         ])
         
+        
+        
     }
 }
+
+
 
 enum Axis{
     case verical
@@ -217,10 +251,17 @@ class MovieBackgroundView: UIView {
 
 class TopAppBarView: UIView {
 
-    let backButton = UIImageView()
+    let backButton = UIButton()
     let favoriteButton = UIImageView()
     let titleLabel = UILabel()
 
+    var onBackTapped: (() -> Void)?
+    
+    @objc private func handleBackTapped() {
+        onBackTapped?()
+    }
+
+    
     // MARK: - Init
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -238,12 +279,14 @@ class TopAppBarView: UIView {
         translatesAutoresizingMaskIntoConstraints = false
 
         // Back button
-        backButton.image = UIImage(named: "BackIcon") // Thay bằng tên ảnh thật
+        backButton.setImage(UIImage(named: "BackIcon"), for: .normal)
         backButton.contentMode = .scaleAspectFit
         backButton.isUserInteractionEnabled = true
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.widthAnchor.constraint(equalToConstant: 32).isActive = true
         backButton.heightAnchor.constraint(equalToConstant: 32).isActive = true
+        backButton.addTarget(self, action: #selector(handleBackTapped), for: .touchUpInside)
+
 
         // Title
         titleLabel.text = "Detail"

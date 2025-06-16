@@ -10,12 +10,19 @@ import Foundation
 
 class MovieDetailViewModel {
     private let movieIDs = [634649, 429617]
-
+    var selectedMovie: MovieDetail?
+    
+    init(selectedMovie: MovieDetail){
+        self.selectedMovie = selectedMovie
+    }
     var movies: [MovieDetail?] = [] {
         didSet {
             onDataUpdated?()
         }
     }
+    
+    init(){}
+   
 
     var onDataUpdated: (() -> Void)?
 
