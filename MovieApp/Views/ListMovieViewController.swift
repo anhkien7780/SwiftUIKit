@@ -10,28 +10,38 @@ import UIKit
 import SDWebImage
 
 class ListMovieViewController: UIViewController{
-    let screenTitle = UILabel()
+    let screenTitle: UILabel = {
+        let label = UILabel()
+        label.text = "Movies"
+        label.textColor = .white
+        label.font = UIFont.boldSystemFont(ofSize: 24)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
     let movieDetailViewModel = MovieDetailViewModel()
     let movieTableView = UITableView()
     override func viewDidLoad() {
         super.viewDidLoad()
-        
-        screenTitle.text = "Movies"
-        screenTitle.textColor = .white
-        screenTitle.font = UIFont.boldSystemFont(ofSize: 24)
-        screenTitle.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(screenTitle)
-        
         view.backgroundColor = .black
+        
         movieDetailViewModel.loadMovieDetail()
         movieTableView.backgroundColor = .black
-        _ = movieDetailViewModel.movies
+        movieDetailViewModel.onDataUpdated = { [weak self] in
+            DispatchQueue.main.async {
+                self?.movieTableView.reloadData()
+            }
+        }
+        movieDetailViewModel.loadMovieDetail()
+        
         movieTableView.register(MovieItemCell.self, forCellReuseIdentifier: "MovieItemCell")
         movieTableView.delegate = self
         movieTableView.dataSource = self
+        
         movieTableView.translatesAutoresizingMaskIntoConstraints = false
         
+        view.addSubview(screenTitle)
         view.addSubview(movieTableView)
+        
         NSLayoutConstraint.activate([
             screenTitle.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             screenTitle.centerXAnchor.constraint(equalTo: view.centerXAnchor),
@@ -40,13 +50,7 @@ class ListMovieViewController: UIViewController{
             movieTableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             movieTableView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
         ])
-        
-        movieDetailViewModel.onDataUpdated = { [weak self] in
-            DispatchQueue.main.async {
-                self?.movieTableView.reloadData()
-            }
-        }
-        movieDetailViewModel.loadMovieDetail()
+
     }
 }
 
@@ -138,10 +142,10 @@ class MovieItem: UIView{
         backgroundColor = .black
         let descriptionIconTextView = ColumnView(
             arrangedSubviews: [
-                IconTitleView(imageNamed: "Star", labelTitle: averageRate),
-                IconTitleView(imageNamed: "Ticket", labelTitle: genre),
-                IconTitleView(imageNamed: "CalendarBlank", labelTitle: year),
-                IconTitleView(imageNamed: "Clock", labelTitle: runtime)
+                IconTitleView(imageNamed: "Star", labelTitle: averageRate, iconTintColor: .orange, titleTextColor: .orange),
+                IconTitleView(imageNamed: "Ticket", labelTitle: genre, iconTintColor: .white, titleTextColor: .white),
+                IconTitleView(imageNamed: "CalendarBlank", labelTitle: year, iconTintColor: .white, titleTextColor: .white),
+                IconTitleView(imageNamed: "Clock", labelTitle: runtime, iconTintColor: .white, titleTextColor: .white)
             ])
         descriptionIconTextView.setSpacing(by: 6)
         let movieTitle: UILabel = {
@@ -272,6 +276,14 @@ class IconTitleView: UIView {
         setupViews()
         configure(icon: UIImage(named: imageNamed), title: labelTitle)
     }
+    
+    init(imageNamed: String, labelTitle: String, iconTintColor: UIColor, titleTextColor: UIColor){
+        super.init(frame: .zero)
+        setupViews()
+        configure(icon: UIImage(named: imageNamed), title: labelTitle)
+        setIconTintColor(iconTintColor)
+        setTitleColor(titleTextColor)
+    }
 
     required init?(coder: NSCoder) {
         super.init(coder: coder)
@@ -297,11 +309,19 @@ class IconTitleView: UIView {
     
 
     func configure(icon: UIImage?, title: String) {
-        iconImageView.image = icon
+        iconImageView.image = icon?.withRenderingMode(.alwaysTemplate)
         titleLabel.text = title
     }
     
     func padding(top: CGFloat, left: CGFloat, bottom: CGFloat, right: CGFloat){
         layoutMargins = UIEdgeInsets(top: top, left: left, bottom: bottom, right: right)
+    }
+    
+    func setIconTintColor(_ color: UIColor){
+        iconImageView.tintColor = color
+    }
+    
+    func setTitleColor(_ color: UIColor){
+        titleLabel.textColor = color
     }
 }

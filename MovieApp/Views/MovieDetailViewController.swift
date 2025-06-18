@@ -19,8 +19,7 @@ class MovieDetailViewController: UIViewController {
         super.init(nibName: nil, bundle: nil)
     }
     
-  
-    
+
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -43,6 +42,8 @@ class MovieDetailViewController: UIViewController {
         let fullURL = "https://image.tmdb.org/t/p/w500\(movie.posterPath ?? "")"
         posterImageView.sd_setImage(with: URL(string: fullURL), placeholderImage: UIImage(named: "SpiderMan"))
         posterImageView.contentMode = .scaleAspectFill
+        posterImageView.layer.cornerRadius = 16
+        posterImageView.clipsToBounds = true
         
         let movieTitleLabel: UILabel = {
             let label = UILabel()
@@ -57,11 +58,11 @@ class MovieDetailViewController: UIViewController {
         let releaseDate = movie.releaseDate
         let releaseYear = releaseDate.split(separator: "-")[0]
         let descriptionsView = RowView(arrangedSubViews: [
-            IconTitleView(imageNamed: "CalendarBlank", labelTitle: String(releaseYear)),
+            IconTitleView(imageNamed: "CalendarBlank", labelTitle: String(releaseYear), iconTintColor: .gray, titleTextColor: .gray),
             Divider(axis: .verical),
-            IconTitleView(imageNamed: "Clock", labelTitle: "\(movie.runtime)" ),
+            IconTitleView(imageNamed: "Clock", labelTitle: "\(movie.runtime) Minutes", iconTintColor: .gray, titleTextColor: .gray),
             Divider(axis: .verical),
-            IconTitleView(imageNamed: "Ticket", labelTitle: movie.genres[0].name),
+            IconTitleView(imageNamed: "Ticket", labelTitle: movie.genres[0].name, iconTintColor: .gray, titleTextColor: .gray),
         ])
         
         let overviewView: UILabel = {
@@ -193,6 +194,8 @@ class MovieBackgroundView: UIView {
     private let ratingLabel: IconTitleView = {
         let view = IconTitleView()
         view.backgroundColor = .clear
+        view.setIconTintColor(.orange)
+        view.setTitleColor(.orange)
         view.translatesAutoresizingMaskIntoConstraints = false
         return view
     }()
